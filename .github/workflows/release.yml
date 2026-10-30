@@ -1,0 +1,84 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  package:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            exe: openclaim-mcp
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            exe: openclaim-mcp
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            exe: openclaim-mcp.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Stable releases must come from main
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF_NAME" != *-* ]]; then
+            git merge-base --is-ancestor HEAD origin/main
+          fi
+          test "${GITHUB_REF_NAME#v}" = "$(python -c 'import tomllib; print(tomllib.load(open("Cargo.toml","rb"))["workspace"]["package"]["version"])')"
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          targets: ${{ matrix.target }}
+      - run: cargo test --locked --workspace
+      - run: cargo build --locked --release -p openclaim-mcp --target ${{ matrix.target }}
+      - name: Package binary and skill
+        shell: bash
+        run: |
+          mkdir -p release/openclaim-${{ matrix.target }}
+          cp target/${{ matrix.target }}/release/${{ matrix.exe }} release/openclaim-${{ matrix.target }}/
+          cp README.md LICENSE release/openclaim-${{ matrix.target }}/
+          cp -R skills release/openclaim-${{ matrix.target }}/
+          tar -czf openclaim-${{ matrix.target }}.tar.gz -C release openclaim-${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: openclaim-*.tar.gz
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          targets: wasm32-unknown-unknown
+      - run: cargo install wasm-bindgen-cli --version 0.2.121 --locked
+      - run: bash scripts/build-web.sh
+      - run: tar -czf openclaim-browser.tar.gz -C dist .
+      - run: tar -czf openclaim-skill.tar.gz -C skills openclaim
+      - uses: actions/upload-artifact@v4
+        with:
+          name: browser-and-skill
+          path: openclaim-*.tar.gz
+  publish:
+    needs: [package, browser]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - run: sha256sum artifacts/*.tar.gz > artifacts/SHA256SUMS
+      - name: Publish versioned assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          args=()
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then args+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" artifacts/* --verify-tag --generate-notes "${args[@]}"

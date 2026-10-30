@@ -1,0 +1,19 @@
+[workspace]
+members = ["crates/core", "crates/wasm", "crates/mcp"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0-alpha.1"
+edition = "2024"
+license = "Apache-2.0"
+rust-version = "1.95"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+openclaim-core = { path = "crates/core" }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

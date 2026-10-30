@@ -1,0 +1,33 @@
+name: Validate
+on:
+  push:
+    branches: [main, 'dev/**', 'feat/**', 'fix/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo test --workspace --locked
+      - run: cargo build --locked -p openclaim-mcp
+      - run: python3 scripts/smoke-mcp.py
+      - run: npm test
+      - run: cargo install wasm-bindgen-cli --version 0.2.121 --locked
+      - run: bash scripts/build-web.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openclaim-browser-preview
+          path: dist
+          retention-days: 7

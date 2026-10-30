@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "openclaim": {
+      "command": "/absolute/path/to/openclaim-mcp",
+      "args": []
+    }
+  }
+}
