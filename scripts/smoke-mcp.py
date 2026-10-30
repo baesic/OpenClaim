@@ -27,7 +27,7 @@ try:
     p.stdin.write(json.dumps({"jsonrpc":"2.0","method":"notifications/initialized"})+"\n")
     p.stdin.flush()
     tools = request(2,"tools/list",{})["result"]["tools"]
-    assert {t["name"] for t in tools} == {"openclaim_choices","openclaim_template"}
+    assert {t["name"] for t in tools} == {"openclaim_choices","openclaim_template","openclaim_guidance_index","openclaim_response_plan"}
     for tool in tools:
         assert tool["annotations"]["readOnlyHint"] is True
         assert tool["inputSchema"].get("additionalProperties") is False
@@ -41,7 +41,22 @@ try:
     rejected_empty = request(5,"tools/call",{"name":"openclaim_choices","arguments":{"name":sentinel}})
     assert "error" in rejected_empty or rejected_empty.get("result",{}).get("isError"), rejected_empty
     assert sentinel not in json.dumps(rejected_empty)
-    print("MCP stdio handshake, tools, template and private-field rejection: PASS")
+    index_reply=request(6,"tools/call",{"name":"openclaim_guidance_index","arguments":{}})
+    index=json.loads(index_reply["result"]["content"][0]["text"])
+    sequence=10
+    for scenario in index["scenarios"]:
+        for incident in ["generic"]+[i["id"] for i in index["incidents"]]:
+            reply=request(sequence,"tools/call",{"name":"openclaim_response_plan","arguments":{"scenario":scenario["id"],"incident":incident}})
+            assert "result" in reply and not reply["result"].get("isError"),reply
+            plan=json.loads(reply["result"]["content"][0]["text"])
+            assert plan["scenario"]["id"]==scenario["id"]
+            assert plan["sources"] and plan["routes"]
+            if incident!="generic": assert plan["incident_context"]["id"]==incident
+            sequence+=1
+    rejected_plan=request(sequence,"tools/call",{"name":"openclaim_response_plan","arguments":{"scenario":"notice_only","name":sentinel}})
+    assert "error" in rejected_plan or rejected_plan.get("result",{}).get("isError"),rejected_plan
+    assert sentinel not in json.dumps(rejected_plan)
+    print("MCP: four public tools, all response/incident options and private-field rejection PASS")
 finally:
     p.terminate()
     p.wait(timeout=5)

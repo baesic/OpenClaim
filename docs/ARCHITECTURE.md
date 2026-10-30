@@ -17,7 +17,9 @@ GitHub source / Releases / Skill / static browser assets
  The user separately submits from their own email / official portal.
 ```
 
-`openclaim-core` has no network or filesystem dependencies. It supplies a public catalog, public templates and a local-only draft renderer. `openclaim-wasm` binds this core for browser use. `openclaim-mcp` only calls the public functions; it has no renderer tool. `web/public-tools.js` deliberately has no DOM access and only captures the public functions.
+`openclaim-core` has no network or filesystem dependencies. It supplies a public catalog, source-backed response guidance, public templates and a local-only draft renderer. The response guide is embedded from `data/kr-response-guide.json`; its standalone Skill reference is generated and checked for drift. `openclaim-wasm` binds the core for browser use. `openclaim-mcp` only calls public functions; it has no private renderer tool. `web/public-tools.js` deliberately has no DOM access and only captures public functions.
+
+The response surface offers eight closed public situation categories and optional reviewed public incident context. These select general information; they are not victim reports. Outputs separate recommended response options from agency procedures, and include evidence checklists, request examples, cost uncertainty, source IDs, checked dates and a review-due date. No network fetch or individual eligibility decision occurs at runtime. The browser's guide selection and private fields are not automatically passed to MCP. A cloud AI host already sees any user-selected category it sends; the Skill offers a menu rather than soliciting personal facts.
 
 The browser supports free selection of inquiry, compensation review and mediation preparation. It never automatically advances the case. A user's receipt record is labeled unverified. No integration with a specific incident or named applicant is bundled.
 

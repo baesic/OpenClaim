@@ -6,7 +6,7 @@ mkdir -p web/pkg
 wasm-bindgen target/wasm32-unknown-unknown/release/openclaim_wasm.wasm --target web --out-dir web/pkg
 rm -rf dist
 mkdir -p dist/skill
-cp web/index.html web/style.css web/app.js web/public-tools.js web/vault.js dist/
+cp web/index.html web/style.css web/app.js web/public-tools.js web/vault.js web/guidance-view.js dist/
 cp -R web/pkg dist/
 cp -R skills/openclaim/. dist/skill/
 tar -czf dist/openclaim-skill.tar.gz -C skills openclaim

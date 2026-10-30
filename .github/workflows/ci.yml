@@ -25,6 +25,7 @@ jobs:
       - run: python3 scripts/smoke-mcp.py
       - run: python3 scripts/smoke-http.py
       - run: npm test
+      - run: python3 scripts/sync-guidance.py --check
       - run: cargo install wasm-bindgen-cli --version 0.2.121 --locked
       - run: bash scripts/build-web.sh
       - uses: actions/upload-artifact@v4

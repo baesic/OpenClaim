@@ -2,7 +2,7 @@
 
 **나의 정보, 나의 선택.** 개인정보 유출에 대한 본인의 보상 신청을 준비하는 Rust 기반 오픈소스 도구입니다.
 
-> **개발 미리보기 — 0.1.0-alpha.1.** 법적 결과나 보상액을 보장하지 않으며, 정식 서비스 적합성 검토가 끝난 버전이 아닙니다. 실제 제출·본인인증·합의는 사용자가 직접 수행합니다.
+> **개발 미리보기 — 0.1.0-alpha.2.** 법적 결과나 보상액을 보장하지 않으며, 정식 서비스 적합성 검토가 끝난 버전이 아닙니다. 실제 제출·본인인증·합의는 사용자가 직접 수행합니다.
 
 ## 세 가지 사용 방식
 
@@ -32,6 +32,8 @@ cargo build --locked --release -p openclaim-mcp
 릴리스가 제공되는 경우 [Releases](https://github.com/baesic/OpenClaim/releases)에서 운영체제에 맞는 실행 파일과 `SHA256SUMS`를 내려받아 해시를 대조한 뒤 실행할 수 있습니다. 첫 릴리스 이전에는 소스 빌드를 사용하세요.
 
 노출 도구:
+- `openclaim_guidance_index({})`: 상황별 대응안·기관 역할·공개 공지·근거 확인일 탐색
+- `openclaim_response_plan({"scenario":"notice_only","incident":"skplanet_gifticon_2026_10"})`: 대응 선택지, 증빙, 요청 예시, 기관별 신청 방법·비용·한계·공식 근거
 - `openclaim_choices({})`: 공개 선택지와 공식 안내 링크
 - `openclaim_template({"kind":"inquiry|compensation|mediation"})`: 빈 양식
 
@@ -74,6 +76,7 @@ cargo build --locked -p openclaim-mcp
 python3 scripts/smoke-mcp.py
 python3 scripts/smoke-http.py
 npm test
+python3 scripts/sync-guidance.py --check
 bash scripts/build-web.sh
 ```
 
@@ -88,3 +91,13 @@ GitHub Actions는 빌드·시험·릴리스·정적 사이트 배포만 수행�
 ## 기여
 
 [CONTRIBUTING.md](CONTRIBUTING.md) · [설계](docs/ARCHITECTURE.md) · [보안](SECURITY.md) · [Apache-2.0](LICENSE)
+
+## 상황별 대응안
+
+유출 안내 수신(`notice_only`), 본인 유출 확인(`confirmed_leak`), 쿠폰 무단 사용(`coupon_misuse`), 금융 사기(`financial_fraud`), 명의도용(`identity_misuse`), 계정 도용·스미싱(`account_takeover`), 사업자 미회신·거절(`business_no_response`), 분쟁조정 준비(`mediation_preparation`)의 8가지 안내를 제공합니다.
+
+`incident`는 생략하거나 `generic`을 선택할 수 있습니다. 현재 공지별 추가 안내는 `skplanet_gifticon_2026_10`을 제공합니다. 개인 피해자의 자료는 포함하지 않습니다. 상황 식별자는 일반 대응안을 고르는 값이며 실제 피해를 신고·인정하는 값이 아닙니다. 브라우저의 개인 작성 내용이나 선택은 MCP로 자동 공유되지 않습니다.
+
+각 대응안은 대응 선택지, 로컬 증빙 목록, 요청 예시, 담당 기관의 역할·신청 방법·비용 주의·한계, 공식 근거와 2026-10-30 확인 날짜를 제공합니다. KISA 시정·조사, 개인정보분쟁조정, 경찰 신고, 소비자 거래 분쟁, Msafer 예방 기능을 구분합니다. 실시간 조회나 배상 자격 판단이 아니므로 공식 사이트에서 최신 요건을 다시 확인하세요.
+
+원본은 [공개 대응 데이터](data/kr-response-guide.json)입니다. Rust/WASM/MCP가 이를 사용하고 [Skill의 독립 대응 안내](skills/openclaim/references/response-guide.md)는 `python3 scripts/sync-guidance.py`로 생성합니다. CI가 동기화를 확인합니다.

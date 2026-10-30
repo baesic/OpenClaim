@@ -73,7 +73,7 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
-      - run: sha256sum artifacts/*.tar.gz > artifacts/SHA256SUMS
+      - run: cd artifacts && sha256sum *.tar.gz > SHA256SUMS
       - name: Publish versioned assets
         env:
           GH_TOKEN: ${{ github.token }}

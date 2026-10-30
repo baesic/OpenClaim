@@ -32,12 +32,64 @@ enum TemplateKind {
     Mediation,
 }
 
+#[derive(Debug, serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum Scenario {
+    NoticeOnly,
+    ConfirmedLeak,
+    CouponMisuse,
+    FinancialFraud,
+    IdentityMisuse,
+    AccountTakeover,
+    BusinessNoResponse,
+    MediationPreparation,
+}
+
+#[derive(Debug, Default, serde::Deserialize, serde::Serialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum Incident {
+    #[default]
+    Generic,
+    #[serde(rename = "skplanet_gifticon_2026_10")]
+    SkplanetGifticon2026_10,
+}
+
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct ResponseChoice {
+    /// Public playbook category only, not the user's private case facts.
+    scenario: Scenario,
+    /// Optional public incident context. No individual victim data.
+    #[serde(default)]
+    incident: Incident,
+}
+
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct Empty {}
 
 #[tool_router(server_handler)]
 impl OpenClaim {
+    #[tool(
+        description = "Discover Korean privacy-breach response playbooks, agency roles, application guidance, verified source dates and public incident IDs. No case data is accepted.",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    fn openclaim_guidance_index(&self, Parameters(_): Parameters<Empty>) -> String {
+        openclaim_core::guidance_index().to_string()
+    }
+
+    #[tool(
+        description = "Get a source-backed public response plan: immediate options, evidence checklist, requests, agency-specific application steps, cost notes and limits. Select public categories only; never send personal case facts. Does not establish eligibility or submit anything.",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    fn openclaim_response_plan(&self, Parameters(choice): Parameters<ResponseChoice>) -> String {
+        let scenario = serde_json::to_value(choice.scenario).expect("serializable enum");
+        let incident = serde_json::to_value(choice.incident).expect("serializable enum");
+        openclaim_core::response_plan(scenario.as_str().unwrap(), incident.as_str().unwrap())
+            .expect("closed public selectors")
+            .to_string()
+    }
+
     #[tool(
         description = "List public self-claim preparation choices and official information links. No private case data is accepted or returned.",
         annotations(read_only_hint = true, open_world_hint = false)

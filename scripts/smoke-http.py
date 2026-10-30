@@ -54,7 +54,11 @@ try:
     assert status==200 and "result" in data,(status,data)
     assert call({"jsonrpc":"2.0","method":"notifications/initialized"},session=sid)[0]==202
     status,_,tools=call({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}},session=sid)
-    assert status==200 and len(tools["result"]["tools"])==2,(status,tools)
-    print("HTTP authentication, origin rejection, initialize and tool discovery: PASS")
+    assert status==200 and len(tools["result"]["tools"])==4,(status,tools)
+    status,_,reply=call({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"openclaim_response_plan","arguments":{"scenario":"notice_only","incident":"skplanet_gifticon_2026_10"}}},session=sid)
+    assert status==200 and not reply["result"].get("isError"),(status,reply)
+    plan=json.loads(reply["result"]["content"][0]["text"])
+    assert plan["incident_context"]["id"]=="skplanet_gifticon_2026_10"
+    print("HTTP authentication, origin rejection, discovery and source-backed response plan PASS")
 finally:
     p.terminate(); p.wait(timeout=5)

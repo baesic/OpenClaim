@@ -1,6 +1,6 @@
 # Development and release lifecycle
 
-Current implementation: `dev/initial-build`, version `0.1.0-alpha.1`. `main` holds only the initial scope until the user decides the project is ready. Development preview publication and prereleases do not promote the code to stable.
+Current implementation: `dev/initial-build`, version `0.1.0-alpha.2`. `main` holds only the initial scope until the user decides the project is ready. Development preview publication and prereleases do not promote the code to stable.
 
 ## Before a stable release
 

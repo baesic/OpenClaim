@@ -6,6 +6,18 @@ pub fn public_catalog() -> String {
 }
 
 #[wasm_bindgen]
+pub fn public_guidance_index() -> String {
+    openclaim_core::guidance_index().to_string()
+}
+
+#[wasm_bindgen]
+pub fn public_response_plan(scenario: &str, incident: &str) -> Result<String, JsValue> {
+    openclaim_core::response_plan(scenario, incident)
+        .map(|v| v.to_string())
+        .map_err(JsValue::from_str)
+}
+
+#[wasm_bindgen]
 pub fn public_template(kind: &str) -> Result<String, JsValue> {
     openclaim_core::blank_template(kind)
         .map(str::to_owned)

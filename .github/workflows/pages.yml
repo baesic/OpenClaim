@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['web/**', 'crates/core/**', 'crates/wasm/**', 'skills/**', 'Cargo.lock', 'scripts/build-web.sh', '.github/workflows/pages.yml']
+    paths: ['web/**', 'data/**', 'crates/core/**', 'crates/wasm/**', 'skills/**', 'Cargo.lock', 'scripts/build-web.sh', '.github/workflows/pages.yml']
 permissions:
   contents: read
 concurrency:

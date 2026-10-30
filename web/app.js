@@ -1,6 +1,7 @@
-import init, {public_catalog, public_template, local_draft} from './pkg/openclaim_wasm.js';
+import init, {public_catalog, public_template, public_guidance_index, public_response_plan, local_draft} from './pkg/openclaim_wasm.js';
 import {publicTools, registerPublicTools} from './public-tools.js';
 import {encryptVault, decryptVault} from './vault.js';
+import {renderGuidance} from './guidance-view.js';
 
 const $ = id => document.getElementById(id);
 let ready = false, evidenceFiles = [], currentDraft = '', resetGeneration = 0, revision = 0;
@@ -75,11 +76,17 @@ $('load-vault').addEventListener('change',async event=>{
 try {
   await init(); ready=true;
   const catalog=JSON.parse(public_catalog());
+  const guide=JSON.parse(public_guidance_index());
+  for(const scenario of guide.scenarios){const option=document.createElement('option');option.value=scenario.id;option.textContent=scenario.title;$('guide-scenario').append(option);}
+  for(const incident of guide.incidents){const option=document.createElement('option');option.value=incident.id;option.textContent=incident.title;$('guide-incident').append(option);}
+  $('guide-date').textContent=guide.as_of+' 확인';
+  const showGuidance=()=>renderGuidance($('guide-output'),JSON.parse(public_response_plan($('guide-scenario').value,$('guide-incident').value)));
+  $('guide-scenario').addEventListener('change',showGuidance);$('guide-incident').addEventListener('change',showGuidance);showGuidance();
   for(const choice of catalog.choices){ const button=document.createElement('button'); button.type='button'; button.dataset.choice=choice.id; button.textContent=choice.label; button.setAttribute('aria-pressed',String(choice.id===$('kind').value)); button.addEventListener('click',()=>{$('kind').value=choice.id; $('kind').dispatchEvent(new Event('change')); invalidate();}); $('choices').append(button); }
   for(const source of catalog.sources){ const a=document.createElement('a'); a.href=source.url; a.textContent=source.label+' ↗'; a.target='_blank'; a.rel='noopener noreferrer'; $('sources').append(a); }
   showBlank(); $('render').disabled=false; $('save-vault').disabled=false;
   $('runtime').textContent='Rust · WebAssembly 준비 완료 / 개인정보 처리에 네트워크를 사용하지 않습니다.';
   let registered=false;
-  try { registered=registerPublicTools(document.modelContext, publicTools(public_catalog,public_template)); } catch { /* manual mode remains available */ }
+  try { registered=registerPublicTools(document.modelContext, publicTools(public_catalog,public_template,{index:public_guidance_index,plan:public_response_plan})); } catch { /* manual mode remains available */ }
   $('webmcp-status').textContent=registered?'WebMCP 공개 도구 연결됨':'수동 사용 가능 · WebMCP 미연결';
 } catch { $('runtime').textContent='WASM을 불러오지 못했습니다. 배포 파일을 로컬 웹 서버 또는 HTTPS에서 열어주세요.'; $('webmcp-status').textContent='WASM 로드 실패'; }

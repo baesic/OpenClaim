@@ -1,4 +1,4 @@
 interface:
   display_name: "OpenClaim"
-  short_description: "Choose public claim guidance while keeping private data local"
-  default_prompt: "Use $openclaim to help me choose a blank self-claim template without collecting my personal information."
+  short_description: "Get breach response options and official self-claim guidance"
+  default_prompt: "Use $openclaim to explain response options and official application routes without collecting my personal information."

@@ -2,6 +2,83 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
+fn guidance_data() -> Value {
+    serde_json::from_str(include_str!("../../../data/kr-response-guide.json"))
+        .expect("validated public guidance data")
+}
+
+pub fn guidance_index() -> Value {
+    let mut guide = guidance_data();
+    guide["scenarios"] = Value::Array(guide["scenarios"].as_array().unwrap().iter().map(|s| {
+        json!({"id":s["id"],"title":s["title"],"summary":s["summary"],"urgency":s["urgency"],"template_kind":s["template_kind"]})
+    }).collect());
+    guide
+}
+
+pub fn response_plan(scenario: &str, incident: &str) -> Result<Value, &'static str> {
+    let guide = guidance_data();
+    let scenario = guide["scenarios"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["id"].as_str() == Some(scenario))
+        .ok_or("지원하는 공개 대응안 식별자를 선택하세요.")?;
+    let incident_context = if incident == "generic" {
+        Value::Null
+    } else {
+        guide["incidents"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["id"].as_str() == Some(incident))
+            .ok_or("지원하는 공개 공지 식별자를 선택하세요.")?
+            .clone()
+    };
+    let mut route_ids: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut source_ids: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for action in scenario["actions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .chain(std::iter::once(&incident_context))
+    {
+        for (key, set) in [
+            ("route_ids", &mut route_ids),
+            ("source_ids", &mut source_ids),
+        ] {
+            if let Some(ids) = action[key].as_array() {
+                set.extend(ids.iter().filter_map(|v| v.as_str().map(str::to_string)));
+            }
+        }
+    }
+    let routes: Vec<Value> = guide["routes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|r| route_ids.contains(r["id"].as_str().unwrap()))
+        .cloned()
+        .collect();
+    for route in &routes {
+        source_ids.extend(
+            route["source_ids"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| v.as_str().unwrap().to_string()),
+        );
+    }
+    let sources: Vec<Value> = guide["sources"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|s| source_ids.contains(s["id"].as_str().unwrap()))
+        .cloned()
+        .collect();
+    Ok(
+        json!({"as_of":guide["as_of"],"review_due":guide["review_due"],"notice":guide["notice"],"privacy":guide["privacy"],"cost_policy":guide["cost_policy"],"selection_note":"선택한 공개 대응안입니다. 사용자 본인의 피해 인정·신청·전송을 수행하지 않습니다.", "scenario":scenario,"incident_context":incident_context,"routes":routes,"sources":sources}),
+    )
+}
+
 pub fn catalog() -> Value {
     json!({
         "version": env!("CARGO_PKG_VERSION"),
@@ -14,6 +91,7 @@ pub fn catalog() -> Value {
         ],
         "privacy": "개인정보는 MCP 인수·결과에 입력하지 마세요. 브라우저의 로컬 작성 기능에서만 처리하세요.",
         "submission": "사용자가 자신의 메일 또는 기관 사이트에서 직접 제출합니다. 자동 접수·대리·합의 기능은 없습니다.",
+        "guidance": {"index_tool":"openclaim_guidance_index","plan_tool":"openclaim_response_plan","as_of":"2026-10-30","description":"상황별 대응 선택지·증빙·기관별 신청 방법과 공개 공지별 안내"},
         "sources": [
             {"label":"개인정보분쟁조정위원회", "url":"https://www.kopico.go.kr/"},
             {"label":"개인정보 포털", "url":"https://www.privacy.go.kr/"},
@@ -115,6 +193,68 @@ pub fn render_draft(input: &DraftInput) -> Result<String, &'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn guidance_resolves_all_routes_sources_and_incidents() {
+        let data = guidance_data();
+        let source_ids: std::collections::BTreeSet<&str> = data["sources"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|s| {
+                assert!(s["url"].as_str().unwrap().starts_with("https://"));
+                assert_eq!(s["checked_on"], data["as_of"]);
+                s["id"].as_str().unwrap()
+            })
+            .collect();
+        let route_ids: std::collections::BTreeSet<&str> = data["routes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| r["id"].as_str().unwrap())
+            .collect();
+        for route in data["routes"].as_array().unwrap() {
+            assert!(!route["cost"].as_str().unwrap().is_empty());
+            for id in route["source_ids"].as_array().unwrap() {
+                assert!(source_ids.contains(id.as_str().unwrap()));
+            }
+        }
+        for scenario in data["scenarios"].as_array().unwrap() {
+            assert!(blank_template(scenario["template_kind"].as_str().unwrap()).is_ok());
+            for action in scenario["actions"].as_array().unwrap() {
+                for id in action["route_ids"].as_array().unwrap() {
+                    assert!(route_ids.contains(id.as_str().unwrap()));
+                }
+                for id in action["source_ids"].as_array().unwrap() {
+                    assert!(source_ids.contains(id.as_str().unwrap()));
+                }
+            }
+            for incident in ["generic", "skplanet_gifticon_2026_10"] {
+                let plan = response_plan(scenario["id"].as_str().unwrap(), incident).unwrap();
+                assert!(!plan["sources"].as_array().unwrap().is_empty());
+                assert!(!plan["routes"].as_array().unwrap().is_empty());
+                if incident != "generic" {
+                    assert_eq!(plan["incident_context"]["id"], incident);
+                }
+            }
+        }
+        assert!(response_plan("unknown", "generic").is_err());
+        assert!(response_plan("notice_only", "unknown").is_err());
+    }
+    #[test]
+    fn urgent_fraud_is_distinct_from_notice_only() {
+        let fraud = response_plan("financial_fraud", "generic").unwrap();
+        let notice = response_plan("notice_only", "generic").unwrap();
+        assert_eq!(fraud["scenario"]["urgency"], "urgent");
+        assert_eq!(notice["scenario"]["urgency"], "normal");
+        assert!(
+            fraud["scenario"]["actions"][0]["route_ids"]
+                .as_array()
+                .unwrap()
+                .contains(&json!("police"))
+        );
+        assert_eq!(notice["scenario"]["template_kind"], "inquiry");
+        assert!(fraud["incident_context"].is_null());
+    }
     fn input() -> DraftInput {
         DraftInput {
             kind: "compensation".into(),
