@@ -1,0 +1,14 @@
+/target/
+/dist/
+/web/pkg/
+/node_modules/
+/.playwright/
+.DS_Store
+.env
+.env.*
+!.env.example
+/private/
+/cases/
+/evidence/
+*.openclaim-vault
+*.local.json
