@@ -28,6 +28,8 @@ try:
     p.stdin.flush()
     tools = request(2,"tools/list",{})["result"]["tools"]
     assert {t["name"] for t in tools} == {"openclaim_choices","openclaim_template","openclaim_guidance_index","openclaim_response_plan"}
+    descriptor = json.loads(subprocess.check_output([binary,"--describe"], text=True))
+    assert descriptor["tools"] == tools, "Distribution descriptor differs from live MCP tools/list"
     for tool in tools:
         assert tool["annotations"]["readOnlyHint"] is True
         assert tool["inputSchema"].get("additionalProperties") is False

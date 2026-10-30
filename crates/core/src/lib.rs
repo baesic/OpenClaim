@@ -82,8 +82,10 @@ pub fn response_plan(scenario: &str, incident: &str) -> Result<Value, &'static s
 pub fn catalog() -> Value {
     json!({
         "version": env!("CARGO_PKG_VERSION"),
-        "purpose": "본인의 개인정보 유출 보상 신청 준비를 위한 선택형 로컬 도구",
-        "modes": ["browser_wasm", "local_mcp", "skill_only"],
+        "purpose": "AI Agent에 개인정보 유출 대응안·신청 방법·빈 양식을 제공하는 MCP·Skill 도구 모음",
+        "product_type": "agent_toolkit",
+        "modes": ["local_mcp", "browser_wasm", "skill_only"],
+        "service_page": {"role":"distribution_and_integration", "entry":"index.html", "browser_runtime":"browser.html", "optional_private_workspace":"workspace.html", "manifest":"service.json"},
         "choices": [
             {"id":"inquiry", "label":"유출 여부 확인", "description":"개인별 유출 여부와 항목 확인 요청"},
             {"id":"compensation", "label":"보상 검토 요청", "description":"확인된 사실에 따른 보상 기준과 검토 요청"},

@@ -5,6 +5,7 @@ OpenClaim is a development preview, not a guarantee of zero data leakage or a co
 ## Designed boundaries
 
 - Private draft rendering runs in local Rust/WASM. No request is made to a cloud model or project-operated backend.
+- The service entry (`index.html`) is a script-free installation/distribution page with no case fields. Public WebMCP tools run on `browser.html`. The optional private `workspace.html` uses a separate module and does not register WebMCP; this separation does not block an AI host's independent DOM/screen-reading permission.
 - Browser assets are self-hosted; CSP disallows form submission, external scripts/fonts/frames and external fetch origins. `connect-src 'self'` permits WASM loading, not a claim-upload feature. CSP is defense in depth, not proof against a malicious replacement build.
 - No telemetry, persistent browser storage, background sync or automatic update service is included. Browser memory holds input until it is cleared or the tab closes.
 - Public MCP/WebMCP tools accept only closed template, general playbook and reviewed public incident identifiers or an empty object. They do not access the private form or return private documents. They do not read arbitrary local files or execute shell commands. Categories chosen by a cloud AI client are already visible to that AI host; do not treat a category as a private victim report.

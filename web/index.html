@@ -4,44 +4,43 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'">
-  <title>OpenClaim — 나의 선택으로 준비하는 보상 신청</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <meta name="description" content="개인정보 유출 대응안과 본인 신청 방법을 AI Agent에 제공하는 OpenClaim MCP·Skill. 설치 패키지, 도구 명세, 브라우저 WASM 실행 안내.">
+  <title>OpenClaim — MCP·Skill 배포 및 연동 안내</title>
   <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.js"></script>
 </head>
 <body>
-  <header><a class="wordmark" href="./">◈ OpenClaim <span>개발 미리보기</span></a><span class="local-pill">● 사용자 기기에서 실행</span></header>
+  <header><a class="wordmark" href="./index.html">◈ OpenClaim <span>개발 미리보기 · alpha.3</span></a><nav aria-label="주요 안내"><a href="#connect">설치·연동</a><a href="#tools">제공 도구</a><a href="https://github.com/baesic/OpenClaim" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav></header>
   <main>
-    <section class="hero"><p class="eyebrow">YOUR INFORMATION. YOUR CHOICE.</p><h1>보상 신청의 준비,<br>선택은 나에게.</h1><p class="lead">개인정보 유출에 대응하는 방법을 확인하고, 필요한 문서를 직접 준비하세요.<br>입력한 정보는 이 화면에서 처리됩니다. 제출은 본인이 직접 합니다.</p><p id="runtime" role="status">Rust · WebAssembly를 준비하고 있습니다…</p></section>
-    <section aria-labelledby="mode-title"><div class="section-head"><h2 id="mode-title">내 환경에 맞는 사용 방법</h2><span>세 가지 방식 · 같은 원칙</span></div><div class="modes">
-      <article><span class="number">01 / BROWSER</span><h3>이 브라우저에서</h3><p>설치 없이 로컬 문서 작성. WebMCP 지원 시 공개 안내와 빈 양식만 AI에 제공합니다.</p><span id="webmcp-status" class="tag">지원 여부 확인 중</span></article>
-      <article><span class="number">02 / MCP</span><h3>내 PC의 MCP 서버</h3><p>로컬 AI 클라이언트에 공개 안내 도구를 연결합니다. 개인정보를 받는 도구는 제공하지 않습니다.</p><code>openclaim-mcp</code></article>
-      <article><span class="number">03 / SKILL</span><h3>Skill만 활용</h3><p>서버 없이 안내와 빈 양식을 사용합니다. 개인정보를 클라우드 AI에 입력하지 마세요.</p><a href="./openclaim-skill.tar.gz" download>Skill 패키지 내려받기 ↗</a></article>
+    <section class="hero service-hero"><p class="eyebrow">OPEN SOURCE · RUST / WASM · MCP / SKILL</p><h1>개인정보 피해 대응안,<br>나의 Agent에 연결.</h1><p class="lead">공식 근거가 있는 대응 선택지와 신청 방법, 빈 양식을 제공하는 MCP·Skill 도구 모음.<br>설치·연동은 여기서, 실행과 개인정보 처리는 사용자의 환경에서 이루어집니다.</p><div class="actions"><a class="button-link" href="#connect">사용 방식 선택</a><a class="button-link secondary" href="#tools">도구 명세 보기</a></div><p class="hint">Apache-2.0 · 개발 버전 · 사용자 본인 신청 지원 · 보상액·법적 결과 보장 없음</p></section>
+    <section id="connect" aria-labelledby="mode-title"><div class="section-head"><h2 id="mode-title">내 환경에 제공하는 세 가지 방식</h2><span>주력: MCP · 브라우저 / 보조: Skill 단독</span></div><div class="modes">
+      <article><span class="number">01 / LOCAL MCP · 주력</span><h3>Agent에 도구 연결</h3><p>내 PC에서 Rust MCP 서버를 실행합니다. AI 클라이언트가 공개 대응안·기관 안내·빈 양식을 도구로 활용합니다.</p><a href="#mcp-install">MCP 설치·설정 ↓</a><span class="tag">stdio 기본 · 로컬 실행</span></article>
+      <article><span class="number">02 / BROWSER WASM · 주력</span><h3>브라우저에서 도구 실행</h3><p>같은 Rust 핵심을 WASM으로 실행합니다. WebMCP 지원 환경에서는 공개 도구를 연결하고, 미지원 환경에서는 직접 선택합니다.</p><a href="./browser.html">WASM 공개 도구 열기 ↗</a><span class="tag">WebMCP 선택 · 수동 선택 지원</span></article>
+      <article><span class="number">03 / STANDALONE SKILL · 보조</span><h3>Skill만 받아서 응용</h3><p>서버 없이 Agent가 대응 지침과 출처, 양식을 참고합니다. MCP나 브라우저 실행이 필수 조건은 아닙니다.</p><a href="#skill-install">Skill 받기·적용 ↓</a><span class="tag">독립 지침 패키지</span></article>
     </div></section>
-    <section class="workspace" aria-labelledby="guide-title"><div class="section-head"><div><p class="eyebrow">RESPONSE OPTIONS</p><h2 id="guide-title">상황별 대응안과 신청 경로</h2></div><span id="guide-date" class="tag">공개 안내</span></div><p class="hint">일반 대응안의 종류를 선택하세요. 개인 피해를 신고하거나 작성 중인 문서를 전송하지 않습니다. 확인 날짜 이후의 공지는 공식 사이트에서 다시 확인하세요.</p><div class="form-grid"><label>살펴볼 상황<select id="guide-scenario"></select></label><label>함께 볼 공개 공지<select id="guide-incident"><option value="generic">일반 안내</option></select></label></div><div id="guide-output" aria-live="polite"></div></section>
-    <section aria-labelledby="choice-title"><div class="section-head"><h2 id="choice-title">지금 필요한 도구를 선택하세요</h2><span>정해진 순서가 없습니다</span></div><div id="choices" class="choices"></div></section>
-    <section class="workspace" aria-labelledby="draft-title">
-      <div class="section-head"><div><p class="eyebrow">PRIVATE WORKSPACE</p><h2 id="draft-title">내 기기에서 작성</h2></div><span class="tag">자동 저장·자동 전송 없음</span></div>
-      <p class="notice">실명과 증빙은 이 로컬 작성 공간에서만 입력하세요. AI 도구는 이 내용을 반환하지 않습니다. 브라우저 확장이나 AI의 화면 읽기 권한까지 차단하지는 못하므로, 민감정보 작성 시 화면 공유와 확장 권한을 확인하세요.</p>
-      <form id="draft-form" autocomplete="off">
-        <div class="form-grid">
-          <label>문서 종류<select id="kind" name="kind"><option value="inquiry">유출 여부 확인</option><option value="compensation">보상 검토 요청</option><option value="mediation">분쟁조정 초안</option></select></label>
-          <label>대상 사업자<input id="company" maxlength="1000" required></label>
-          <label>신청인 성명<input id="name" maxlength="1000" required></label>
-          <label>회신 연락처<input id="contact" maxlength="1000" required placeholder="이메일 또는 전화번호"></label>
-          <label>피해 확인 상태<select id="loss-status"><option value="unknown">아직 확인되지 않음</option><option value="no_confirmed_loss">현재 확인된 손실 없음</option><option value="confirmed">실제 손해 확인</option></select></label>
-          <label>확인한 손해 금액 (원, 선택)<input id="amount" inputmode="numeric" disabled placeholder="손해가 확인된 경우만 입력"></label>
-        </div>
-        <label>확인된 사실과 경과<textarea id="facts" rows="4" maxlength="6000" required placeholder="안내문 수신 등 직접 확인한 사실만 적으세요."></textarea></label>
-        <label>내가 요청할 사항<textarea id="remedy" rows="3" maxlength="6000" placeholder="유출 항목 확인, 보상 기준 안내 등 본인이 선택한 요구"></textarea></label>
-        <label>증빙·추가 확인 사항<textarea id="evidence" rows="3" maxlength="6000"></textarea></label>
-        <div class="evidence-tools"><label class="file-label">증빙 파일의 해시 기록 (내용 업로드 없음)<input id="evidence-files" type="file" multiple></label><p class="hint">파일당 10 MiB 이하. 파일명·크기·SHA-256만 기록합니다. 원본은 별도로 보관하세요. 해시만으로 사실이나 진위가 입증되지는 않습니다.</p><ul id="evidence-list"></ul></div>
-        <div class="form-grid"><label>직접 처리한 접수 상태<select id="receipt-status"><option value="not_submitted">미제출</option><option value="user_reported">본인이 제출했다고 기록</option><option value="receipt_recorded">접수번호를 직접 기록 (진위 미검증)</option></select></label><label>접수번호·메모 (선택)<input id="receipt-note" maxlength="2000"></label></div>
-        <div class="actions"><button type="submit" id="render" disabled>초안 미리보기</button><button type="button" id="download" class="secondary" disabled>현재 초안을 파일로 저장</button><button type="button" id="clear" class="quiet">입력·기록 모두 지우기</button></div>
-      </form>
-      <p id="message" role="status" aria-live="polite"></p><pre id="preview" tabindex="0" aria-label="로컬 초안 미리보기">작성한 초안이 여기에 표시됩니다.</pre>
-      <details><summary>암호화 파일로 보관하거나 다시 열기</summary><p>입력 내용과 접수 기록을 암호화해 내 PC에 저장합니다. 비밀번호는 저장하지 않으며 분실하면 복구할 수 없습니다.</p><label>보관 파일 비밀번호 (12자 이상)<input id="vault-password" type="password" autocomplete="new-password" minlength="12"></label><div class="actions"><button type="button" id="save-vault" class="secondary" disabled>암호화 파일 저장</button><label class="file-label">암호화 파일 열기<input type="file" id="load-vault" accept=".openclaim-vault,application/json"></label></div></details>
-    </section>
-    <section class="bottom-grid"><article><h2>빈 양식만 살펴보기</h2><p>이 양식은 공개 정보입니다. 작성 내용과 연결되지 않습니다.</p><pre id="blank" tabindex="0"></pre></article><article><h2>공식 경로에서 직접 확인</h2><div id="sources"></div><p class="hint">접수 조건·비용·보상 여부는 이용 시 공식 기관에서 확인하세요. OpenClaim은 배상액·법적 결과를 보장하지 않습니다.</p></article></section>
-  </main><footer><span>OpenClaim · Apache-2.0</span><span>개인정보 수집 없음 · 대리 제출 없음 · 분석 추적 없음</span></footer>
+    <section id="mcp-install" class="workspace" aria-labelledby="mcp-title"><div class="section-head"><div><p class="eyebrow">MCP SERVER PACKAGE</p><h2 id="mcp-title">실행 파일 설치 → 내 Agent에 등록</h2></div><span class="tag">호스팅 계정·API 키 불필요</span></div><p>현재 개발 릴리스에서 내 운영체제에 맞는 파일을 받고, 같은 릴리스의 <code>SHA256SUMS</code>와 대조하세요. 압축을 풀고 실행 권한과 경로를 확인한 뒤 MCP를 지원하는 로컬 클라이언트에 등록합니다.</p><div class="download-list"><a href="https://github.com/baesic/OpenClaim/releases/download/v0.1.0-alpha.3/openclaim-aarch64-apple-darwin.tar.gz">macOS · Apple Silicon ↓</a><a href="https://github.com/baesic/OpenClaim/releases/download/v0.1.0-alpha.3/openclaim-x86_64-unknown-linux-gnu.tar.gz">Linux · x86_64 GNU ↓</a><a href="https://github.com/baesic/OpenClaim/releases/download/v0.1.0-alpha.3/openclaim-x86_64-pc-windows-msvc.tar.gz">Windows · x86_64 ↓</a><a href="https://github.com/baesic/OpenClaim/releases/tag/v0.1.0-alpha.3" target="_blank" rel="noopener noreferrer">릴리스·체크섬 ↗</a></div><p class="hint">아래는 일반적인 <code>mcpServers</code> 형식의 예시입니다. 실행 파일 경로를 본인의 절대 경로로 바꾸세요. 클라이언트별 등록 방식은 다를 수 있습니다. Windows 파일명은 <code>openclaim-mcp.exe</code>입니다.</p><pre class="code" aria-label="MCP 등록 설정 예시">{
+  "mcpServers": {
+    "openclaim": {
+      "command": "/absolute/path/to/openclaim-mcp",
+      "args": []
+    }
+  }
+}</pre><div class="actions"><a href="./examples/mcp-config.json" download>설정 예시 받기 ↓</a><a href="https://github.com/baesic/OpenClaim/blob/dev/initial-build/docs/INSTALL.md" target="_blank" rel="noopener noreferrer">소스 빌드·로컬 HTTP 설치 안내 ↗</a></div><p class="notice">이 페이지 주소는 원격 MCP 접속 주소가 아닙니다. MCP 서버는 사용자의 PC에서 실행됩니다. 선택형 HTTP도 인증된 loopback 전용이며, 브라우저는 별도의 WASM/WebMCP 방식을 사용합니다.</p></section>
+    <section id="tools" aria-labelledby="tools-title"><div class="section-head"><div><p class="eyebrow">PUBLIC TOOL CONTRACT</p><h2 id="tools-title">Agent에 제공하는 네 가지 도구</h2></div><a href="./service.json" download>기계 판독 명세 JSON ↓</a></div><p class="hint">MCP와 WebMCP가 같은 공개 기능을 제공합니다. 입력은 빈 객체 또는 정해진 공개 식별자뿐입니다. 개인정보·사건 자유 서술·증빙을 받는 필드는 없습니다.</p><div class="tool-list">
+      <article><div><code>openclaim_guidance_index</code><h3>대응안과 신청 경로 탐색</h3></div><p>8개 상황, 기관 역할, 공개 공지, 공식 출처와 확인 날짜.</p><pre class="code">{}</pre></article>
+      <article><div><code>openclaim_response_plan</code><h3>선택한 상황의 구체적 대응안</h3></div><p>대응 선택지, 증빙 목록, 요청 예시, 기관별 신청 방법·비용·한계.</p><pre class="code">{"scenario":"notice_only","incident":"generic"}</pre></article>
+      <article><div><code>openclaim_choices</code><h3>제공 기능과 빈 양식 종류</h3></div><p>사용 방식, 문의·보상 검토·분쟁조정 선택지, 공식 안내 경로.</p><pre class="code">{}</pre></article>
+      <article><div><code>openclaim_template</code><h3>사용자가 채울 빈 양식</h3></div><p><code>inquiry</code> / <code>compensation</code> / <code>mediation</code>. 완성 문서를 읽지 않습니다.</p><pre class="code">{"kind":"compensation"}</pre></article>
+    </div><p class="hint"><code>service.json</code>은 실제 MCP 서버의 도구 스키마를 포함한 OpenClaim 자체 배포 명세입니다. MCP 표준 설치 파일이나 레지스트리 등록 증명이 아닙니다. <a href="https://github.com/baesic/OpenClaim/blob/dev/initial-build/docs/SERVICE.md" target="_blank" rel="noopener noreferrer">도구 계약·연동 예시 ↗</a></p></section>
+    <section class="bottom-grid" aria-label="Skill과 브라우저 배포"><article id="skill-install" class="workspace"><p class="eyebrow">SKILL PACKAGE</p><h2>서버 없이도 대응안을 제공</h2><p>전체 <code>openclaim/</code> 폴더를 Agent가 지원하는 Skill 경로에 설치하세요. <code>SKILL.md</code>와 대응안·출처·빈 양식 참조 파일을 함께 사용합니다.</p><div class="actions"><a class="button-link" href="./openclaim-skill.tar.gz" download>Skill 패키지 받기 ↓</a><a href="./skill/SKILL.md">지침 원문</a></div><pre class="code">openclaim/
+├─ SKILL.md
+├─ agents/openai.yaml
+└─ references/
+   ├─ response-guide.md
+   ├─ templates.md
+   ├─ modes.md
+   └─ integration.md</pre><p>Agent에 요청할 수 있는 예시: “개인정보를 묻지 말고, 유출 안내만 받은 경우의 대응 선택지와 공식 신청 방법을 알려줘.”</p><p class="hint">Skill 단독 사용은 부분 응용 방식입니다. MCP 설치나 서비스 페이지 방문을 요구하지 않습니다.</p></article><article class="workspace"><p class="eyebrow">BROWSER RUNTIME PACKAGE</p><h2>공개 도구와 개인 작성을 분리</h2><p><a href="./browser.html">공개 WASM 실행 화면</a>에서 대응안과 양식을 확인하고 WebMCP를 연결합니다. 개인정보 입력 항목은 없습니다.</p><p>문서 작성이 필요하면 별도 <a href="./workspace.html">선택형 로컬 작성 도구</a>를 사용합니다. 이 화면에는 WebMCP를 등록하지 않으며, 초안·증빙 해시·암호화 보관 파일을 내 기기에서 처리합니다.</p><div class="actions"><a href="https://github.com/baesic/OpenClaim/releases/download/v0.1.0-alpha.3/openclaim-browser.tar.gz">브라우저 실행 패키지 ↓</a></div><p class="hint">다운로드한 파일은 신뢰하는 로컬 정적 서버에서 실행하세요. WASM 실행에는 HTTP/HTTPS가 필요합니다. WebMCP는 지원 브라우저에서만 연결되며 일반 원격 MCP URL을 대신하지 않습니다.</p></article></section>
+    <section class="workspace" aria-labelledby="response-title"><div class="section-head"><div><p class="eyebrow">SOURCE-BACKED RESPONSE CONTENT</p><h2 id="response-title">설치 후 제공받는 대응안</h2></div><span class="tag">근거 확인 2026-10-30</span></div><p>안내 수신 · 유출 확인 · 쿠폰 무단 사용 · 금융 사기 · 명의도용 · 계정 도용 · 사업자 미회신 · 분쟁조정 준비. SK플래닛 기프티콘 공지의 공개 안내도 선택할 수 있습니다.</p><p>사업자 문의·보상 검토, KISA 침해신고, 개인정보 분쟁조정, 경찰·금융기관 긴급 대응, Msafer, 소비자 거래 분쟁을 구분해 방법을 제공합니다. 조회·신청·인증·제출·합의는 사용자가 선택해 직접 실행합니다.</p><div class="actions"><a href="./browser.html#guide-title">공개 대응안 살펴보기 ↗</a><a href="./skill/references/response-guide.md">Skill 대응안 원문</a><a href="./data/kr-response-guide.json">공통 근거 데이터</a></div><p class="hint">정적 안내이며 실시간 피해 조회·배상 자격 판정이 아닙니다. 재검토 예정 2026-11-30. 조건·비용·보상 가능성은 이용 시 공식 기관에서 확인하세요.</p></section>
+    <section class="service-boundary"><h2>배포는 GitHub에서, 운영은 사용자에게</h2><p>GitHub Actions는 공개 소프트웨어를 빌드·검증·배포합니다. 서비스 페이지는 설치 파일과 사용 안내를 제공하며 신청인 정보를 받지 않습니다. 사용자 PC와 브라우저가 실행을 담당하고, OpenClaim 운영자는 신청·사건 처리에 관여하지 않습니다.</p><p class="hint">프로젝트는 개인 사건을 전송하는 기능을 제공하지 않습니다. AI 호스트·확장·화면 공유 권한까지 통제할 수는 없으므로 민감정보는 신뢰하는 로컬 환경에서 처리하세요. 개발은 <code>dev/initial-build</code>에서 유지하며, 정식 제공 결정 후 <code>main</code> 전환과 임시 브랜치 정리를 진행합니다.</p></section>
+  </main><footer><span>OpenClaim · Apache-2.0 · MCP·Skill 배포 및 연동 안내</span><div><a href="https://github.com/baesic/OpenClaim/blob/dev/initial-build/SECURITY.md" target="_blank" rel="noopener noreferrer">보안 경계</a> · <a href="https://github.com/baesic/OpenClaim/blob/dev/initial-build/docs/RELEASE.md" target="_blank" rel="noopener noreferrer">개발·릴리스 기준</a></div></footer>
 </body></html>

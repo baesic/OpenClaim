@@ -1,47 +1,67 @@
 # ◈ OpenClaim
 
-**나의 정보, 나의 선택.** 개인정보 유출에 대한 본인의 보상 신청을 준비하는 Rust 기반 오픈소스 도구입니다.
+**개인정보 피해 대응안을 나의 Agent에 연결.** 개인정보 유출 대응안·공식 신청 방법·빈 양식을 AI Agent가 활용하도록 제공하는 Rust 기반 **MCP 서버·Skill 오픈소스 프로젝트**입니다. MCP와 브라우저 WASM이 주력 실행 방식이며, Skill만 받아 부분 응용할 수도 있습니다.
 
-> **개발 미리보기 — 0.1.0-alpha.2.** 법적 결과나 보상액을 보장하지 않으며, 정식 서비스 적합성 검토가 끝난 버전이 아닙니다. 실제 제출·본인인증·합의는 사용자가 직접 수행합니다.
+> **개발 미리보기 — 0.1.0-alpha.3.** 법적 결과·보상액을 보장하지 않습니다. 조회·본인인증·신청·제출·합의는 사용자가 직접 선택해 수행합니다. 운영자는 개인 사건에 관여하지 않습니다.
 
-## 세 가지 사용 방식
+[서비스 페이지](https://baesic.github.io/OpenClaim/)는 설치 패키지·설정·도구 명세·Skill·실행 방식을 안내하는 배포 진입점입니다. 신청인을 받는 웹서비스나 원격 MCP 주소가 아닙니다.
 
-| 방식 | 실행 장소 | 기능 |
-|---|---|---|
-| 브라우저 / WASM | 사용자 브라우저 | 로컬 초안, 증빙 해시, 수동 접수 기록, 암호화 파일 보관. WebMCP 지원 시 공개 도구 연결 |
-| 로컬 MCP 서버 | 사용자 PC | 공개 안내·선택지·빈 양식을 AI에 제공. 기본 stdio, 선택적 인증 loopback HTTP |
-| Skill 단독 | 사용자의 Agent 환경 | 서버 없이 공개 안내와 빈 양식 활용. 개인정보는 AI 대화 밖에서 직접 입력 |
+## 제공 방식
 
-공통 Rust 핵심을 브라우저 WASM과 MCP에서 재사용합니다. 브라우저의 UI·파일 저장·Web Crypto에는 JavaScript를 사용합니다. MCP와 WebMCP는 작성된 개인정보 문서를 읽거나 반환하는 기능을 제공하지 않습니다.
+| 방식 | 우선 역할 | 실행·운영 | 제공 내용 |
+|---|---|---|---|
+| 로컬 MCP 서버 | 주력 | 사용자 PC / MCP 지원 클라이언트 | 공개 대응안·기관별 신청 방법·증빙 체크리스트·빈 양식을 도구로 제공. 기본 stdio, 선택적 인증 loopback HTTP |
+| 브라우저 WASM | 주력 | 사용자 브라우저 | 같은 Rust 핵심의 공개 도구 실행. WebMCP 지원 시 Agent 연결, 미지원 시 직접 선택 |
+| Skill 단독 | 보조·독립 응용 | 사용자의 Agent 환경 | 서버 없이 대응 지침·공식 근거·빈 양식 활용. MCP나 서비스 페이지 방문 불필요 |
 
-## 빠른 시작
+개인정보가 필요한 문서 작성은 **선택형 보조 도구**입니다. 공개 도구 실행 화면과 별도의 로컬 작성 공간에서 사용자가 직접 처리하며, 이 화면에는 WebMCP를 등록하지 않습니다. MCP/Skill의 사용을 위해 작성 화면을 거칠 필요가 없습니다.
 
-### 로컬 MCP
+## MCP 설치·연동
 
-Rust 1.95.0과 Git을 설치한 환경에서:
+[개발 릴리스](https://github.com/baesic/OpenClaim/releases/tag/v0.1.0-alpha.3)의 운영체제별 실행 파일을 받고 같은 릴리스의 `SHA256SUMS`를 대조하세요. macOS Apple Silicon, Linux x86_64 GNU, Windows x86_64를 제공합니다. 다른 환경은 소스 빌드 후 직접 호환성을 확인하세요.
+
+압축을 풀고 MCP 지원 **로컬 클라이언트**에 [설정 예시](examples/mcp-config.json)를 등록하세요. 자신의 실행 파일 절대 경로로 바꿔야 합니다. 클라이언트마다 설정 방식은 다릅니다.
+
+```json
+{
+  "mcpServers": {
+    "openclaim": {
+      "command": "/absolute/path/to/openclaim-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+Windows 실행 파일은 `openclaim-mcp.exe`입니다. stdio는 클라이언트가 프로세스를 시작하므로 API 키·호스팅·상시 서버 계정이 필요 없습니다. 소스 빌드는 Rust 1.95.0과 Git이 있는 환경에서:
 
 ```sh
 git clone --branch dev/initial-build https://github.com/baesic/OpenClaim.git
 cd OpenClaim
 cargo build --locked --release -p openclaim-mcp
-./target/release/openclaim-mcp
+./target/release/openclaim-mcp --describe
 ```
 
-프로세스가 표준 입력에서 MCP 연결을 기다리는 것이 정상입니다. AI 클라이언트에서 [examples/mcp-config.json](examples/mcp-config.json)의 실행 파일 경로를 자신의 절대 경로로 바꾸어 등록하세요. Windows 실행 파일은 `openclaim-mcp.exe`입니다. 지원하는 설정 형식은 클라이언트마다 다릅니다.
+인수 없이 실행하면 표준 입력에서 MCP 연결을 기다립니다. `--describe`는 실제 도구 스키마를 포함한 공개 배포 명세를 출력합니다. 선택형 로컬 HTTP는 [설치 안내](docs/INSTALL.md)를 참고하세요. 인터넷 접속용 MCP 서버는 운영하지 않습니다.
 
-릴리스가 제공되는 경우 [Releases](https://github.com/baesic/OpenClaim/releases)에서 운영체제에 맞는 실행 파일과 `SHA256SUMS`를 내려받아 해시를 대조한 뒤 실행할 수 있습니다. 첫 릴리스 이전에는 소스 빌드를 사용하세요.
+## Agent에 제공하는 도구
 
-노출 도구:
-- `openclaim_guidance_index({})`: 상황별 대응안·기관 역할·공개 공지·근거 확인일 탐색
-- `openclaim_response_plan({"scenario":"notice_only","incident":"skplanet_gifticon_2026_10"})`: 대응 선택지, 증빙, 요청 예시, 기관별 신청 방법·비용·한계·공식 근거
-- `openclaim_choices({})`: 공개 선택지와 공식 안내 링크
-- `openclaim_template({"kind":"inquiry|compensation|mediation"})`: 빈 양식
+| 도구 | 허용 입력 | 응답 |
+|---|---|---|
+| `openclaim_guidance_index` | `{}` | 8개 상황·기관 역할·공개 공지·공식 출처·확인일 |
+| `openclaim_response_plan` | 공개 `scenario`, 선택적 `incident` | 대응 선택지·증빙·요청 예시·기관별 신청 방법·비용·한계·근거 |
+| `openclaim_choices` | `{}` | 기능·사용 방식·빈 양식 선택지·공식 경로 |
+| `openclaim_template` | `kind`: `inquiry`, `compensation`, `mediation` | 사용자가 로컬에서 채울 빈 양식 |
 
-이 도구에 이름·연락처·사건 내용·증빙을 입력하지 마세요. 알 수 없는 필드는 거절합니다. 이미 클라우드 AI에 제공한 입력은 OpenClaim이 회수하거나 통제할 수 없습니다.
+예: `openclaim_response_plan({"scenario":"notice_only","incident":"skplanet_gifticon_2026_10"})`. 상황 식별자는 일반 대응안을 선택하는 값이며 개인 피해 기록이 아닙니다. 도구는 이름·연락처·사건 내용·증빙 등 추가 필드를 거절합니다. 개인 자격 판정·실시간 피해 조회·자동 제출은 수행하지 않습니다.
 
-선택적 로컬 HTTP 실행은 [설치 안내](docs/INSTALL.md)를 참고하세요. 인터넷에서 연결하는 원격 서비스는 제공하지 않습니다.
+[도구 계약·연동 예시](docs/SERVICE.md) · [배포 명세 JSON](https://baesic.github.io/OpenClaim/service.json). `service.json`은 OpenClaim 자체 형식으로, 표준 MCP 자동 설치 파일이나 레지스트리 인증이 아닙니다.
 
-### 브라우저
+## 브라우저 WASM 실행
+
+[공개 도구 실행 화면](https://baesic.github.io/OpenClaim/browser.html)에서 대응안·양식을 직접 선택할 수 있습니다. WebMCP 지원 환경에서는 동일한 네 가지 공개 도구를 Agent에 제공합니다. WebMCP는 실험적인 브라우저 API이며 `document.modelContext.registerTool`을 감지합니다. 미지원 환경에서는 수동 도구 선택을 제공합니다. 원격 MCP URL·stdio 연결을 대신하지 않습니다. [Chrome 공식 문서](https://developer.chrome.com/docs/modern-web-guidance/guides/webmcp/agentic-javascript-tools)
+
+브라우저 패키지를 받아 **사용자의 PC에서** 실행하거나 소스로 빌드할 수 있습니다:
 
 ```sh
 cargo install wasm-bindgen-cli --version 0.2.121 --locked
@@ -49,24 +69,38 @@ bash scripts/build-web.sh
 python3 scripts/serve-web.py
 ```
 
-`http://127.0.0.1:4173`에서 사용합니다. Rust toolchain 설정이 WASM target을 설치합니다. 배포는 `dist/`의 정적 파일만 필요합니다. GitHub Actions가 동일한 파일을 빌드하며 Pages 또는 릴리스로 배포할 수 있습니다. `file://`로 직접 열면 WASM 로드가 실패할 수 있습니다.
+`http://127.0.0.1:4173`의 구조:
 
-WebMCP는 실험적인 브라우저 API입니다. `document.modelContext.registerTool`이 있으면 공개 도구만 등록하며, 없으면 일반 수동 화면으로 작동합니다. WebMCP는 인터넷 MCP URL이 아니며 클라우드 AI의 URL 연결을 대신하지 않습니다. [Chrome 공식 문서](https://developer.chrome.com/docs/modern-web-guidance/guides/webmcp/agentic-javascript-tools)
+- `/index.html`: 스크립트 없는 서비스 안내. MCP 설치·Skill 받기·도구 명세·실행 모드 안내.
+- `/browser.html`: 공개 WASM 도구 + 선택적 WebMCP. 개인정보 입력 없음.
+- `/workspace.html`: 선택형 개인 작성 보조 도구. WebMCP 미등록, 초안·해시·수동 접수 메모·암호화 파일을 로컬 처리.
 
-### Skill 단독
+`file://`에서도 서비스 안내의 텍스트와 설치 정보는 볼 수 있지만 WASM 실행은 HTTP/HTTPS가 필요합니다. 생성된 패키지 링크는 `dist/`나 릴리스에 포함됩니다. 소스의 `web/`만 직접 열면 생성 파일은 아직 없습니다. 실행 도구에는 JavaScript와 브라우저 WASM 로딩이 필요하며 오프라인 캐시는 제공하지 않습니다.
 
-[skills/openclaim](skills/openclaim) 디렉터리를 사용하는 Agent의 skills 디렉터리로 복사합니다. 예를 들어 Codex에서는 `~/.codex/skills/openclaim/`에 두고 `$openclaim`으로 호출합니다. [SKILL.md](skills/openclaim/SKILL.md)와 참조 양식을 함께 설치해야 합니다. Skill은 로컬 전용 처리 원칙을 안내하지만 AI 호스트의 권한을 강제 통제하지는 않습니다.
+## Skill 단독 적용
 
-## 개인정보 경계
+[Skill 패키지](https://baesic.github.io/OpenClaim/openclaim-skill.tar.gz)를 풀거나 [skills/openclaim](skills/openclaim) 전체 디렉터리를 Agent가 지원하는 Skill 경로에 복사하세요. `SKILL.md`, `agents/`, `references/`를 함께 설치합니다. 특정 호스트의 설치 방식은 해당 호스트 안내를 따르세요.
 
-- 브라우저 초안은 메모리에서 처리하며 자동 저장하지 않습니다. 선택 시 암호화 보관 파일을 사용자 PC에 저장합니다.
-- 암호화: Web Crypto AES-256-GCM, 파일마다 새 salt·IV, PBKDF2-SHA256 600,000회. 비밀번호를 저장하지 않습니다.
-- 증빙 원본을 업로드하지 않습니다. 사용자가 선택한 파일의 이름·크기·SHA-256을 로컬에서 기록합니다. 해시는 진위나 법적 증명력을 보장하지 않습니다.
-- 공개 MCP 서버에는 사건 저장소, 개인정보 입력 양식, 발송·제출 기능이 없습니다.
-- 광고·분석 추적·오류 원격 전송·외부 폰트·클라우드 백업이 없습니다. 소스와 양식을 받는 정적 호스트는 IP 등 접속 메타데이터를 볼 수 있습니다.
-- 외부 브라우저 확장, AI의 화면/DOM 읽기, 악성 호스트, 기기 침해까지 막는 보장은 아닙니다. [보안 경계와 제한](SECURITY.md)을 읽어주세요.
+요청 예시: “개인정보를 묻지 말고 유출 안내만 받은 경우의 대응 선택지와 공식 신청 방법을 알려줘.” Skill은 번들된 대응안과 출처를 직접 사용하며, MCP가 있으면 같은 공개 도구를 활용합니다. Skill은 AI 호스트의 개인정보 접근 권한을 강제로 통제하는 보안 장치가 아닙니다.
 
-## 개발 및 검증
+## 포함한 대응안과 공식 근거
+
+유출 안내 수신(`notice_only`), 유출 확인(`confirmed_leak`), 쿠폰 무단 사용(`coupon_misuse`), 금융 사기(`financial_fraud`), 명의도용(`identity_misuse`), 계정 도용·스미싱(`account_takeover`), 사업자 미회신·거절(`business_no_response`), 분쟁조정 준비(`mediation_preparation`). 선택적 공개 공지: `generic`, `skplanet_gifticon_2026_10`.
+
+사업자 문의·보상 검토, KISA 조사·시정, 개인정보 분쟁조정, 경찰·금융기관 긴급 대응, Msafer 예방, 소비자 거래 분쟁의 역할과 신청 방법을 구분합니다. 각 대응안에 증빙 목록, 요청 예시, 비용과 한계, 공식 출처를 제공합니다. **근거 확인 2026-10-30 / 재검토 예정 2026-11-30**의 정적 안내입니다. 최신 조건과 비용은 이용 시 공식 기관에서 다시 확인하세요.
+
+공통 원본은 [공개 대응 데이터](data/kr-response-guide.json)입니다. Rust/MCP/WASM이 같은 자료를 사용하며 [Skill 독립 안내](skills/openclaim/references/response-guide.md)는 `python3 scripts/sync-guidance.py`로 생성합니다. CI가 동기화를 검증합니다.
+
+## 개인정보와 운영 경계
+
+- MCP/WebMCP는 공개 안내와 빈 양식만 제공합니다. 개인 문서·증빙·접수번호를 AI 도구에 전달하지 않습니다.
+- 선택형 작성 도구는 메모리에서 처리하며 자동 저장·전송하지 않습니다. 선택 시 파일을 내 PC에 저장합니다. 암호화 보관은 AES-256-GCM / PBKDF2-SHA256 600,000회를 사용합니다.
+- 증빙 원본을 업로드하지 않습니다. 로컬에서 파일명·크기·SHA-256만 기록하며, 해시가 진위·법적 증명력을 보장하지는 않습니다.
+- 사건 저장소·사용자 계정·대리 신청·메일 발송·자동 접수·합의·유료 절차 실행·분석 추적·외부 폰트·클라우드 백업이 없습니다.
+- GitHub Actions는 공개 소프트웨어를 빌드·시험·배포하며 사용자의 사건 자료를 처리하지 않습니다. 서비스 페이지는 정적 배포 안내입니다.
+- 정적 호스트는 IP 등 접속 메타데이터를 볼 수 있습니다. AI 호스트·브라우저 확장·화면 읽기·기기 침해까지 차단할 수는 없습니다. 이미 AI에 제공한 개인정보를 회수하지 못합니다. [보안 경계](SECURITY.md)를 확인하세요.
+
+## 개발·검증·정식 제공
 
 ```sh
 cargo fmt --all --check
@@ -78,26 +112,9 @@ python3 scripts/smoke-http.py
 npm test
 python3 scripts/sync-guidance.py --check
 bash scripts/build-web.sh
+node --test tests/distribution.test.js
 ```
 
-실제 사건 자료 대신 가상 데이터만 테스트에 사용하세요. `.gitignore`만으로 개인정보 유출이 방지되지는 않습니다.
+초기 개발과 개발 미리보기는 `dev/initial-build`에서 유지합니다. [릴리스 기준](docs/RELEASE.md)과 정식 제공 결정을 거쳐 `main`에 병합하고 기본 브랜치를 바꾼 뒤, 병합된 임시 브랜치를 삭제합니다. 태그·PR·변경 이력은 보존합니다. 개발 릴리스 발행만으로 `main` 전환이 이루어지지는 않습니다.
 
-## 브랜치와 공개
-
-초기 구현은 `dev/initial-build`, 안정 버전은 `main`에서 관리합니다. 개발 중에는 개발 브랜치를 GitHub 기본 브랜치로 사용합니다. 정식 공개 전 [릴리스 기준](docs/RELEASE.md)을 통과하고 `main`에 병합한 뒤 기본 브랜치를 `main`으로 바꿉니다. 병합된 임시 브랜치는 삭제하고 버전 태그·변경 이력은 보존합니다. 이후 기능 개발은 짧은 기능 브랜치와 PR을 사용합니다.
-
-GitHub Actions는 빌드·시험·릴리스·정적 사이트 배포만 수행하며, 사용자의 실제 사건을 실행하거나 처리하지 않습니다.
-
-## 기여
-
-[CONTRIBUTING.md](CONTRIBUTING.md) · [설계](docs/ARCHITECTURE.md) · [보안](SECURITY.md) · [Apache-2.0](LICENSE)
-
-## 상황별 대응안
-
-유출 안내 수신(`notice_only`), 본인 유출 확인(`confirmed_leak`), 쿠폰 무단 사용(`coupon_misuse`), 금융 사기(`financial_fraud`), 명의도용(`identity_misuse`), 계정 도용·스미싱(`account_takeover`), 사업자 미회신·거절(`business_no_response`), 분쟁조정 준비(`mediation_preparation`)의 8가지 안내를 제공합니다.
-
-`incident`는 생략하거나 `generic`을 선택할 수 있습니다. 현재 공지별 추가 안내는 `skplanet_gifticon_2026_10`을 제공합니다. 개인 피해자의 자료는 포함하지 않습니다. 상황 식별자는 일반 대응안을 고르는 값이며 실제 피해를 신고·인정하는 값이 아닙니다. 브라우저의 개인 작성 내용이나 선택은 MCP로 자동 공유되지 않습니다.
-
-각 대응안은 대응 선택지, 로컬 증빙 목록, 요청 예시, 담당 기관의 역할·신청 방법·비용 주의·한계, 공식 근거와 2026-10-30 확인 날짜를 제공합니다. KISA 시정·조사, 개인정보분쟁조정, 경찰 신고, 소비자 거래 분쟁, Msafer 예방 기능을 구분합니다. 실시간 조회나 배상 자격 판단이 아니므로 공식 사이트에서 최신 요건을 다시 확인하세요.
-
-원본은 [공개 대응 데이터](data/kr-response-guide.json)입니다. Rust/WASM/MCP가 이를 사용하고 [Skill의 독립 대응 안내](skills/openclaim/references/response-guide.md)는 `python3 scripts/sync-guidance.py`로 생성합니다. CI가 동기화를 확인합니다.
+[설계](docs/ARCHITECTURE.md) · [설치](docs/INSTALL.md) · [서비스·도구 명세](docs/SERVICE.md) · [기여](CONTRIBUTING.md) · [Apache-2.0](LICENSE)

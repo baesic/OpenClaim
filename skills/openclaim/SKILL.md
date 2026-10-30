@@ -5,6 +5,8 @@ description: Provide source-backed Korean personal-data breach response options,
 
 # OpenClaim
 
+Provide reusable response methods through MCP tools or this standalone Skill. OpenClaim includes a service page for package discovery, installation and integration; do not treat it as a claim intake website or require a visit before providing guidance. See [references/integration.md](references/integration.md) for the tool contract and public request examples.
+
 Offer independent choices: check official information, select an inquiry/compensation/mediation template, prepare locally, or record the user's own receipt. Do not impose a fixed progression or assume loss from a breach notice alone.
 
 ## Provide a response, not just a link
@@ -20,9 +22,9 @@ Distinguish: business inquiry/protection/compensation review; KISA infringement 
 For urgent ongoing financial fraud, present the official 112/financial-institution response before document preparation; the user makes contact. When costs matter, distinguish confirmed free services, unknown charges and paid calls. Do not start paid representation or litigation. Never present an editorial response deadline as a statutory deadline, make business pre-inquiry a universal prerequisite, or accept a settlement/waiver on the user's behalf.
 
 Use the user's available mode:
-- **MCP**: use the guidance tools above and `openclaim_choices` / `openclaim_template` with public identifiers only. They return public information and unfilled text; they do not access the private workspace.
-- **Browser**: direct the user to their installed OpenClaim browser tool. The user enters personal data, renders and saves the draft locally. WebMCP is optional and exposes public tools only.
-- **Skill only**: offer the blank templates in [references/templates.md](references/templates.md). The user fills them locally. No server is required.
+- **MCP (primary)**: use the guidance tools above and `openclaim_choices` / `openclaim_template` with public identifiers only. They return public information and unfilled text; they do not access the private workspace.
+- **Browser WASM (primary)**: the installed `browser.html` executes public response/blank-template tools with optional WebMCP. Private drafting is a separate optional `workspace.html` with no WebMCP registration; the user alone fills, renders and saves it. Never read its DOM, screenshots or exports into AI context.
+- **Skill only (auxiliary, independent)**: offer the blank templates in [references/templates.md](references/templates.md). The user fills them locally. No server is required.
 
 Do not request names, contact details, account numbers, notice contents, evidence, local draft files or receipt IDs in cloud AI chat or tool arguments. If the user has already supplied sensitive material, do not repeat it or forward it to another tool. Explain how to continue in the local workspace. This skill cannot undo disclosure already made to the AI host.
 

@@ -1,9 +1,9 @@
-name: Deploy browser
+name: Deploy service distribution page
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['web/**', 'data/**', 'crates/core/**', 'crates/wasm/**', 'skills/**', 'Cargo.lock', 'scripts/build-web.sh', '.github/workflows/pages.yml']
+    paths: ['web/**', 'data/**', 'crates/**', 'skills/**', 'examples/**', 'docs/**', 'README.md', 'SECURITY.md', 'Cargo.toml', 'Cargo.lock', 'scripts/build-web.sh', '.github/workflows/pages.yml']
 permissions:
   contents: read
 concurrency:

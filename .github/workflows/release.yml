@@ -41,6 +41,9 @@ jobs:
           mkdir -p release/openclaim-${{ matrix.target }}
           cp target/${{ matrix.target }}/release/${{ matrix.exe }} release/openclaim-${{ matrix.target }}/
           cp README.md LICENSE release/openclaim-${{ matrix.target }}/
+          cp SECURITY.md release/openclaim-${{ matrix.target }}/
+          cp -R docs examples data release/openclaim-${{ matrix.target }}/
+          target/${{ matrix.target }}/release/${{ matrix.exe }} --describe > release/openclaim-${{ matrix.target }}/service.json
           cp -R skills release/openclaim-${{ matrix.target }}/
           tar -czf openclaim-${{ matrix.target }}.tar.gz -C release openclaim-${{ matrix.target }}
       - uses: actions/upload-artifact@v4
@@ -56,6 +59,10 @@ jobs:
           targets: wasm32-unknown-unknown
       - run: cargo install wasm-bindgen-cli --version 0.2.121 --locked
       - run: bash scripts/build-web.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/distribution.test.js
       - run: tar -czf openclaim-browser.tar.gz -C dist .
       - run: tar -czf openclaim-skill.tar.gz -C skills openclaim
       - uses: actions/upload-artifact@v4

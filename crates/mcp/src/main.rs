@@ -114,7 +114,7 @@ impl OpenClaim {
     }
 }
 
-// This service exposes public templates only. The gate still prevents remote
+// This service exposes public guidance and blank templates only. The gate prevents remote
 // websites from invoking a user's loopback service through DNS rebinding.
 async fn gate(State(token): State<Arc<String>>, req: Request, next: Next) -> Response {
     let host_ok =
@@ -173,8 +173,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 })
                 .await?;
         }
+        [arg] if arg == "--describe" => {
+            // Export the real router schemas; distribution metadata is not an MCP registry format.
+            let guide = openclaim_core::guidance_index();
+            let description = serde_json::json!({
+                "format": "openclaim-service/v1",
+                "name": "OpenClaim",
+                "version": env!("CARGO_PKG_VERSION"),
+                "status": "development_preview",
+                "repository": "https://github.com/baesic/OpenClaim",
+                "license": "Apache-2.0",
+                "catalog": openclaim_core::catalog(),
+                "mcp": {"default_transport":"stdio", "command":"openclaim-mcp", "args":[], "configuration_example":"examples/mcp-config.json", "optional_transport":"authenticated_loopback_http", "public_endpoint":null},
+                "browser": {"entry":"browser.html", "runtime":"rust_wasm", "optional_api":"document.modelContext", "manual_fallback":true, "private_workspace":"workspace.html", "private_workspace_registers_tools":false},
+                "skill": {"source_entry":"skills/openclaim/SKILL.md", "browser_entry":"skill/SKILL.md", "archive":"openclaim-skill.tar.gz", "standalone":true},
+                "tools": OpenClaim::tool_router().list_all(),
+                "guidance": {"as_of":guide["as_of"], "review_due":guide["review_due"], "scenarios":guide["scenarios"], "incidents":guide["incidents"], "source_file":"data/kr-response-guide.json"},
+                "boundaries": {"private_case_input":false, "private_case_output":false, "automatic_submission":false, "representation":false, "hosted_runtime":false}
+            });
+            println!("{}", serde_json::to_string_pretty(&description)?);
+        }
         [arg] if arg == "--version" => println!("openclaim-mcp {}", env!("CARGO_PKG_VERSION")),
-        _ => return Err("Usage: openclaim-mcp [--http | --version]".into()),
+        _ => return Err("Usage: openclaim-mcp [--http | --describe | --version]".into()),
     }
     Ok(())
 }

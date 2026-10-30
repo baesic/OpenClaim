@@ -28,6 +28,7 @@ jobs:
       - run: python3 scripts/sync-guidance.py --check
       - run: cargo install wasm-bindgen-cli --version 0.2.121 --locked
       - run: bash scripts/build-web.sh
+      - run: node --test tests/distribution.test.js
       - uses: actions/upload-artifact@v4
         with:
           name: openclaim-browser-preview
