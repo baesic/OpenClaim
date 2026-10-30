@@ -23,6 +23,7 @@ jobs:
       - run: cargo test --workspace --locked
       - run: cargo build --locked -p openclaim-mcp
       - run: python3 scripts/smoke-mcp.py
+      - run: python3 scripts/smoke-http.py
       - run: npm test
       - run: cargo install wasm-bindgen-cli --version 0.2.121 --locked
       - run: bash scripts/build-web.sh

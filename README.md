@@ -72,6 +72,7 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo build --locked -p openclaim-mcp
 python3 scripts/smoke-mcp.py
+python3 scripts/smoke-http.py
 npm test
 bash scripts/build-web.sh
 ```

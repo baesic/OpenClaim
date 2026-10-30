@@ -3,10 +3,10 @@ import {publicTools, registerPublicTools} from './public-tools.js';
 import {encryptVault, decryptVault} from './vault.js';
 
 const $ = id => document.getElementById(id);
-let ready = false, evidenceFiles = [], currentDraft = '';
+let ready = false, evidenceFiles = [], currentDraft = '', resetGeneration = 0, revision = 0;
 const fields = ['kind','company','name','contact','loss-status','amount','facts','remedy','evidence','receipt-status','receipt-note'];
 const say = text => { $('message').textContent = text; };
-function invalidate() { currentDraft = ''; $('preview').textContent = '작성 내용이 변경되었습니다. 초안 미리보기를 눌러 다시 확인하세요.'; $('download').disabled = true; }
+function invalidate() { revision++; currentDraft = ''; $('preview').textContent = '작성 내용이 변경되었습니다. 초안 미리보기를 눌러 다시 확인하세요.'; $('download').disabled = true; }
 function lossChanged() { const enabled = $('loss-status').value === 'confirmed'; $('amount').disabled = !enabled; if (!enabled) $('amount').value = ''; }
 function snapshot() { return {version:1,fields:Object.fromEntries(fields.map(id=>[id,$(id).value])),evidenceFiles}; }
 function validateSnapshot(value) {
@@ -40,24 +40,34 @@ $('draft-form').addEventListener('submit',event=>{
 });
 $('download').addEventListener('click',()=>{ if(currentDraft) download(currentDraft,'openclaim-draft.txt'); });
 $('clear').addEventListener('click',()=>{
+  resetGeneration++;
   $('draft-form').reset(); evidenceFiles=[]; renderEvidence(); $('vault-password').value=''; $('load-vault').value=''; lossChanged(); invalidate(); $('preview').textContent='작성한 초안이 여기에 표시됩니다.'; showBlank(); $('kind').dispatchEvent(new Event('change')); say('이 화면의 입력과 기록을 지웠습니다. 이미 저장한 파일은 사용자가 직접 삭제하세요.');
 });
 $('evidence-files').addEventListener('change',async event=>{
+  const generation = resetGeneration;
+  event.target.disabled = true;
   try {
     const selected=[...event.target.files];
     if (evidenceFiles.length+selected.length>100 || selected.some(f=>f.size>10*1024*1024)) throw new Error('파일은 총 100개 이하, 각각 10 MiB 이하만 처리합니다.');
-    for (const file of selected) { const bytes=await crypto.subtle.digest('SHA-256',await file.arrayBuffer()); evidenceFiles.push({name:file.name,size:file.size,sha256:[...new Uint8Array(bytes)].map(b=>b.toString(16).padStart(2,'0')).join('')}); }
+    const records=[];
+    for (const file of selected) { const bytes=await crypto.subtle.digest('SHA-256',await file.arrayBuffer()); records.push({name:file.name,size:file.size,sha256:[...new Uint8Array(bytes)].map(b=>b.toString(16).padStart(2,'0')).join('')}); }
+    if (generation !== resetGeneration) return;
+    evidenceFiles.push(...records);
     renderEvidence(); invalidate(); say('내 기기에서 해시를 계산했습니다. 원본 파일은 업로드되지 않았습니다.');
-  } catch(error) { say(error.message); } finally { event.target.value=''; }
+  } catch(error) { if (generation === resetGeneration) say(error.message); } finally { event.target.value=''; event.target.disabled=false; }
 });
 $('save-vault').addEventListener('click',async()=>{
-  try { const file=await encryptVault(snapshot(),$('vault-password').value); download(file,'openclaim-backup.openclaim-vault','application/json'); $('vault-password').value=''; say('암호화한 보관 파일을 저장했습니다.'); } catch(error) { say(error.message); }
+  const generation = resetGeneration;
+  $('save-vault').disabled=true;
+  try { const file=await encryptVault(snapshot(),$('vault-password').value); if (generation !== resetGeneration) return; download(file,'openclaim-backup.openclaim-vault','application/json'); $('vault-password').value=''; say('암호화한 보관 파일을 저장했습니다.'); } catch(error) { if (generation === resetGeneration) say(error.message); } finally { $('save-vault').disabled=!ready; }
 });
 $('load-vault').addEventListener('change',async event=>{
+  const initialRevision = revision;
   try {
     const file=event.target.files[0]; if(!file) return;
     if(file.size>2_000_000) throw new Error('보관 파일이 너무 큽니다.');
     const value=validateSnapshot(await decryptVault(await file.text(),$('vault-password').value));
+    if (revision !== initialRevision) throw new Error('복원 중 작성 내용이 변경되어 복원을 취소했습니다. 필요하면 다시 여세요.');
     fields.forEach(id=>{$(id).value=value.fields[id];}); evidenceFiles=value.evidenceFiles; renderEvidence(); lossChanged(); invalidate(); showBlank(); $('kind').dispatchEvent(new Event('change')); $('vault-password').value=''; say('내 기기에서 복호화했습니다. 초안을 다시 확인하세요.');
   } catch(error) { say(error.message); } finally { event.target.value=''; }
 });
